@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/songs")
@@ -22,11 +23,35 @@ public class SongController {
     }
 
     @GetMapping
-    public String getSongsPage(@RequestParam(required = false) String error, Model model) {
-        model.addAttribute("songs", songService.listSongs());
+    public String getSongsPage(@RequestParam(required = false) String error,
+                               @RequestParam(required = false) Long albumId,
+                               Model model)
+    {
+
+
+        List<Song> songs;
+        if(albumId == null)
+        {
+            songs = songService.listSongs();
+        }
+        else
+        {
+            songs = songService.findAllByAlbum_Id(albumId);
+        }
+
+
+        model.addAttribute("songs", songs);
         model.addAttribute("albums", albumService.findAll());
         model.addAttribute("error", error);
         return "songs";
+    }
+
+
+    @GetMapping("/addSong")
+    public String showAddForm(Model model) {
+        model.addAttribute("song", new Song());
+        model.addAttribute("albums", albumService.findAll());
+        return "addEditSong";
     }
 
     @PostMapping("/add")
@@ -34,8 +59,9 @@ public class SongController {
                            @RequestParam String releaseYear, @RequestParam Long albumId) {
         Album album = albumService.findById(albumId);
         Song song = new Song(title, genre,  Integer.parseInt(releaseYear), new ArrayList<>());
-        songService.save(song);
         song.setAlbum(album);
+        songService.save(song);
+
         return "redirect:/songs";
     }
 
@@ -52,7 +78,7 @@ public class SongController {
         Song song = songService.findById(songId);
         model.addAttribute("song", song);
         model.addAttribute("albums", albumService.findAll());
-        return "editSong";
+        return "addEdit";
     }
 
     @PostMapping("/edit")

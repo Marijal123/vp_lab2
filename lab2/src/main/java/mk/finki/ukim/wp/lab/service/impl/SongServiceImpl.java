@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SongServiceImpl implements SongService {
@@ -37,6 +38,11 @@ public class SongServiceImpl implements SongService {
     @Override
     public void delete(Long id) {
         songRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Song> findAllByAlbum_Id(Long albumId) {
+        return songRepository.findAll().stream().filter(song-> song.getAlbum().getId().equals(albumId)).collect(Collectors.toList());
     }
 
     @Transactional
